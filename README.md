@@ -175,14 +175,29 @@ sudo systemctl start finance-tracker
 sudo systemctl status finance-tracker
 ```
 
-### 7b. Grocery App (Node.js)
+### 7b. Grocery App (Node.js, port 4000)
+
+The repo is public. The script clones it automatically, but if you need to do it manually:
 
 ```bash
-git clone <GROCERY_APP_REPO_URL> /home/pi/grocery-app
+git clone git@github.com:fedebarabas/grocery-app.git /home/pi/grocery-app
 cd /home/pi/grocery-app
 npm install
+```
+
+**Important:** `data/groceries.json` is gitignored — it holds the live shopping list and purchase history and must be restored separately. The script looks for it at `/backup/grocery/groceries.json`. If you have a copy elsewhere:
+
+```bash
+mkdir -p /home/pi/grocery-app/data
+cp /your/backup/groceries.json /home/pi/grocery-app/data/groceries.json
+```
+
+If no backup exists the app starts with an empty list (no data loss beyond the list itself — the app rebuilds its history from use).
+
+```bash
 sudo systemctl start grocery
 sudo systemctl status grocery
+# App is available at http://192.168.1.6:4000
 ```
 
 ### 7c. Translation Tool (Node.js, port 3001)
@@ -311,6 +326,10 @@ docker ps
 
 # Check finance tracker
 curl -s http://localhost:5000/ | head -3
+
+# Check grocery app
+curl -s http://localhost:4000/api/ping
+# → {"ok":true}
 ```
 
 ---
@@ -326,6 +345,7 @@ Port  Protocol  Service
                          Translation tool (mellon.home.kg)
 3000  HTTP      Homepage dashboard (Docker)
 3001  HTTP      Translation tool Node.js (internal, proxied)
+4000  HTTP      Grocery App (Node.js, direct access)
 4443  HTTPS     NCP web admin UI
 5000  HTTP      Finance Tracker (Gunicorn)
 7867  HTTP      Nextcloud notify_push (internal)

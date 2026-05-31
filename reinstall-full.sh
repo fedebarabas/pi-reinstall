@@ -748,10 +748,26 @@ systemctl enable finance-tracker
 # =============================================================================
 # 15. CUSTOM APP — GROCERY APP
 # =============================================================================
-section "15. Grocery App (Node.js)"
+section "15. Grocery App (Node.js, port 4000)"
 
-todo "Clone/restore grocery-app to /home/pi/grocery-app"
-todo "Then:  cd /home/pi/grocery-app && npm install"
+# Repo is public — clone directly
+if [[ ! -d /home/$PI_USER/grocery-app ]]; then
+    sudo -u "$PI_USER" git clone git@github.com:fedebarabas/grocery-app.git \
+        /home/$PI_USER/grocery-app
+fi
+cd /home/$PI_USER/grocery-app
+sudo -u "$PI_USER" npm install
+
+# data/groceries.json is gitignored — restore from backup if available
+mkdir -p /home/$PI_USER/grocery-app/data
+if [[ -f /backup/grocery/groceries.json ]]; then
+    cp /backup/grocery/groceries.json /home/$PI_USER/grocery-app/data/groceries.json
+    chown "$PI_USER:$PI_USER" /home/$PI_USER/grocery-app/data/groceries.json
+    info "Restored groceries.json from /backup/grocery/"
+else
+    warn "No grocery data backup found at /backup/grocery/groceries.json — app starts with empty list"
+    todo "Manually restore /home/pi/grocery-app/data/groceries.json if you have a copy"
+fi
 
 cat > /etc/systemd/system/grocery.service <<'EOF'
 [Unit]
